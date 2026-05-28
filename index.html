@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#7C0A3A">
+  <title>BSU UK Registration Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --maroon: #7C0A3A;
+      --maroon-dk: #5C0029;
+      --ink: #1A1420;
+      --muted: #7A7480;
+      --line: #ECE7EA;
+      --bg: #F6F2F4;
+      --card: #FFFFFF;
+      --ok: #1E7A48;
+      --ok-bg: #E8F5EE;
+      --warn: #9A6B12;
+      --warn-dot: #C28A1E;
+      --bad: #BC2F3C;
+      --pending: #B8B2BA;
+      --sans: 'Manrope', system-ui, -apple-system, sans-serif;
+      --serif: 'Fraunces', Georgia, serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--sans);
+      background: #FFFFFF;
+      color: var(--ink);
+      min-height: 100vh; min-height: 100dvh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    }
+    .wrap { max-width: 480px; margin: 0 auto; padding: 28px 18px 0; }
+
+    /* Header */
+    .brand { text-align: center; padding: 8px 0 22px; }
+    .brand img { max-width: 132px; max-height: 96px; height: auto; margin: 0 auto 16px; display: none; object-fit: contain; }
+    .crest {
+      width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%;
+      background: var(--maroon); color: #fff; display: grid; place-items: center;
+      font-family: var(--serif); font-weight: 600; font-size: 21px; letter-spacing: -0.5px;
+      box-shadow: 0 8px 22px rgba(124,10,58,0.28);
+    }
+    .brand h1 {
+      font-family: var(--serif); font-weight: 600; font-size: 25px;
+      color: var(--maroon); letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 5px;
+    }
+    .brand .sub {
+      font-size: 12px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.14em;
+    }
+
+    .card {
+      background: var(--card); border-radius: 18px; padding: 22px 20px;
+      box-shadow: 0 10px 34px rgba(40,10,25,0.07); border: 1px solid var(--line);
+      margin-bottom: 16px;
+    }
+    .intro { font-size: 13.5px; color: #4A444E; line-height: 1.6; }
+    .intro p + p { margin-top: 8px; }
+    .intro a, .note a { color: var(--maroon); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+    .intro a:hover, .note a:hover { opacity: 0.8; }
+    .footer-note a { color: var(--maroon); font-weight: 600; text-decoration: underline; }
+    .intro .note {
+      margin-top: 14px; padding: 11px 13px; background: #FBF3F7;
+      border: 1px solid #F0D9E4; border-radius: 11px; font-size: 12.5px; color: var(--maroon-dk);
+    }
+
+    /* Search */
+    .search-wrap { position: relative; margin-top: 16px; }
+    label.lbl {
+      display: block; font-size: 11px; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+    }
+    .field {
+      display: flex; align-items: center; gap: 10px;
+      border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg);
+      padding: 0 14px; transition: border-color .15s, background .15s;
+    }
+    .field:focus-within { border-color: var(--maroon); background: #fff; }
+    .field svg { flex: none; width: 18px; height: 18px; stroke: var(--muted); }
+    .field input {
+      flex: 1; border: none; outline: none; background: transparent;
+      font-family: inherit; font-size: 16px; font-weight: 500; color: var(--ink);
+      padding: 14px 0;
+    }
+    .clear-x {
+      border: none; background: none; color: var(--muted); font-size: 19px;
+      cursor: pointer; padding: 4px; line-height: 1; display: none;
+    }
+
+    .suggest {
+      position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 20;
+      background: #fff; border: 1px solid var(--line); border-radius: 13px;
+      box-shadow: 0 16px 40px rgba(40,10,25,0.14); overflow: hidden; display: none;
+      max-height: 320px; overflow-y: auto;
+    }
+    .suggest.show { display: block; }
+    .suggest button {
+      display: block; width: 100%; text-align: left; border: none; background: none;
+      font-family: inherit; font-size: 14.5px; font-weight: 500; color: var(--ink);
+      padding: 13px 16px; cursor: pointer; border-bottom: 1px solid var(--line);
+    }
+    .suggest button:last-child { border-bottom: none; }
+    .suggest button:hover, .suggest button.active { background: #FBF3F7; color: var(--maroon); }
+    .suggest .hint { padding: 14px 18px; font-size: 12.5px; color: #4A444E; text-align: center; line-height: 1.55; }
+    .suggest .hint a { color: var(--maroon); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+
+    .spin { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--maroon); border-radius: 50%; animation: sp .7s linear infinite; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+
+    /* Result */
+    .result { display: none; }
+    .result.show { display: block; animation: rise .35s ease; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .result-top {
+      background: var(--maroon);
+      color: #fff; border-radius: 18px; padding: 20px; margin-bottom: 14px;
+      box-shadow: 0 12px 30px rgba(124,10,58,0.26);
+    }
+    .result-top .eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+    .result-top .name { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 4px 0 14px; line-height: 1.2; }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); border-radius: 9px; padding: 7px 11px; }
+    .pill .k { font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; opacity: .75; display: block; }
+    .pill .v { font-size: 13.5px; font-weight: 600; margin-top: 1px; }
+
+    .stage-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 4px 2px 14px; }
+
+    .steps { position: relative; }
+    .step { position: relative; padding: 0 0 18px 34px; }
+    .step:last-child { padding-bottom: 2px; }
+    .step::before { /* connector line */
+      content: ''; position: absolute; left: 10px; top: 20px; bottom: -2px; width: 2px; background: var(--line);
+    }
+    .step:last-child::before { display: none; }
+    .dot {
+      position: absolute; left: 0; top: 1px; width: 22px; height: 22px; border-radius: 50%;
+      display: grid; place-items: center; background: #fff; border: 2px solid var(--pending); z-index: 1;
+    }
+    .dot svg { width: 12px; height: 12px; }
+
+    /* state: done (green tick) */
+    .step.done .dot { background: var(--ok); border-color: var(--ok); }
+    .step.done .dot svg { stroke: #fff; }
+    .step.done::before { background: var(--ok); }
+    .step.done .s-msg { color: var(--ok); font-weight: 600; }
+
+    /* state: in progress (amber clock) */
+    .step.progress .dot { background: var(--warn-dot); border-color: var(--warn-dot); }
+    .step.progress .dot svg { stroke: #fff; }
+    .step.progress .s-msg { color: var(--warn); font-weight: 600; }
+
+    /* state: issue (red cross) */
+    .step.issue .dot { background: var(--bad); border-color: var(--bad); }
+    .step.issue .dot svg { stroke: #fff; }
+    .step.issue .s-msg { color: var(--bad); font-weight: 600; }
+
+    /* state: pending (grey dot) */
+    .step.pending .dot::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--pending); }
+    .step .s-label { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .step.pending .s-label { color: var(--muted); }
+    .step .s-msg { font-size: 13px; color: #4A444E; margin-top: 3px; line-height: 1.5; }
+    .step .s-msg.empty { color: var(--pending); font-style: italic; font-weight: 400; }
+
+    .btn-reset {
+      width: 100%; margin-top: 18px; padding: 13px; border: 1px solid var(--line);
+      background: #fff; color: var(--maroon); font-family: inherit; font-size: 14px;
+      font-weight: 700; border-radius: 12px; cursor: pointer; transition: background .15s;
+    }
+    .btn-reset:hover { background: #FBF3F7; }
+
+    .alert { padding: 12px 14px; border-radius: 11px; font-size: 13px; font-weight: 500; line-height: 1.5; margin-top: 14px; }
+    .alert.err { background: #FEF2F4; color: #9F1239; border: 1px solid #FBD5DF; }
+
+    .footer-note { text-align: center; font-size: 12.5px; color: #5A545E; line-height: 1.6; margin-top: 28px; padding: 0 18px; }
+    .footer-note:not(:empty) + .footer { margin-top: 10px; }
+    .footer { text-align: center; font-size: 11.5px; color: var(--muted); margin-top: 26px; padding: 0 16px; }
+
+    body.boot .wrap > * { opacity: 0; }
+    body.ready .wrap > * { opacity: 1; transition: opacity .3s; }
+
+    @media (min-width: 600px) {
+      .wrap { padding-top: 44px; }
+      .brand h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body class="boot">
+  <div class="wrap">
+    <div class="brand">
+      <img id="logo" alt="">
+      <div class="crest" id="crest" style="display:none">BSU</div>
+      <h1 id="title">BSU UK Registration Tracker</h1>
+      <div class="sub" id="subtitle">September 2026</div>
+    </div>
+
+    <!-- Search card -->
+    <div class="card" id="searchCard">
+      <div class="intro">
+        <p id="intro1"></p>
+        <p id="intro2"></p>
+        <div class="note" id="contactNote"></div>
+      </div>
+      <div class="search-wrap">
+        <label class="lbl" for="q">Your name</label>
+        <div class="field">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="q" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Start typing your name…">
+          <div id="spin" class="spin" style="display:none"></div>
+          <button id="clearX" class="clear-x" aria-label="Clear">&times;</button>
+        </div>
+        <div id="suggest" class="suggest"></div>
+      </div>
+      <div id="alert"></div>
+    </div>
+
+    <!-- Result card -->
+    <div class="result" id="result">
+      <div class="result-top">
+        <div class="eyebrow">Applicant</div>
+        <div class="name" id="rName"></div>
+        <div class="pills" id="rProfile"></div>
+      </div>
+      <div class="card">
+        <div class="stage-title" id="statusTitle">BSU UK Registration Status</div>
+        <div class="steps" id="rSteps"></div>
+        <button class="btn-reset" id="resetBtn">↺ Search another name</button>
+      </div>
+    </div>
+
+    <div class="footer-note" id="footerNote"></div>
+    <div class="footer" id="footer"></div>
+  </div>
+
+  <script>
+    /* ====== CONFIG ====== */
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz3JvrbzJ38F4wydijrGkLXlk3hBH-UNOLvCYOWiEIJ81EL500u2U_ySYs8wnwLZyciA/exec';
+
+    /* ====== JSONP ====== */
+    function jsonp(params) {
+      return new Promise((resolve, reject) => {
+        const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+        const s = document.createElement('script');
+        const done = () => { delete window[cb]; s.remove(); };
+        const t = setTimeout(() => { done(); reject(new Error('timeout')); }, 15000);
+        window[cb] = d => { clearTimeout(t); done(); resolve(d); };
+        s.onerror = () => { clearTimeout(t); done(); reject(new Error('network')); };
+        s.src = APPS_SCRIPT_URL + '?' + new URLSearchParams({ ...params, callback: cb });
+        document.head.appendChild(s);
+      });
+    }
+
+    /* Primary transport: plain fetch (reads Apps Script's CORS JSON directly).
+       Falls back to JSONP automatically if fetch is blocked in some environment. */
+    async function api(params) {
+      const qs = new URLSearchParams(params).toString();
+      try {
+        const r = await fetch(APPS_SCRIPT_URL + '?' + qs, { redirect: 'follow' });
+        if (!r.ok) throw new Error('http ' + r.status);
+        return await r.json();
+      } catch (e) {
+        return jsonp(params);
+      }
+    }
+
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let CFG = {};
+
+    /* Render config text safely. Converts newlines to <br>. If a link URL is
+       supplied (from the key sheet's column C), it turns the phrase 'Provisional
+       Registration Form' into a link where it appears; if that phrase isn't in
+       the text, the whole text becomes the link. Anything else stays plain. */
+    function richText(text, link) {
+      let html = esc(String(text || '')).replace(/\n/g, '<br>');
+      if (link && /^https?:\/\//i.test(link)) {
+        const safeUrl = esc(link);
+        const anchor = u => '<a href="' + safeUrl + '" target="_blank" rel="noopener">' + u + '</a>';
+        const phrase = 'Provisional Registration Form';
+        if (html.indexOf(phrase) !== -1) {
+          // link the LAST occurrence (the actionable 'please fill this ...')
+          const idx = html.lastIndexOf(phrase);
+          html = html.slice(0, idx) + anchor(phrase) + html.slice(idx + phrase.length);
+        } else {
+          html = anchor(html);
+        }
+      }
+      return html;
+    }
+
+    function fixImg(u) {
+      if (!u) return '';
+      let m = u.match(/drive\.google\.com\/file\/d\/([\w-]+)/); if (m) return 'https://lh3.googleusercontent.com/d/' + m[1];
+      m = u.match(/[?&]id=([\w-]+)/); if (m && u.includes('drive.google.com')) return 'https://lh3.googleusercontent.com/d/' + m[1];
+      return u;
+    }
+
+    /* ====== Type-ahead ====== */
+    let debounce, activeIdx = -1, items = [];
+
+    function setSpin(on) { $('spin').style.display = on ? 'block' : 'none'; }
+
+    $('q').addEventListener('input', () => {
+      const v = $('q').value.trim();
+      $('clearX').style.display = v ? 'block' : 'none';
+      clearTimeout(debounce);
+      hideAlert();
+      if (v.length < 2) { closeSuggest(); return; }
+      debounce = setTimeout(() => runSearch(v), 230);
+    });
+
+    async function runSearch(q) {
+      setSpin(true);
+      try {
+        const r = await api({ action: 'names', q });
+        renderSuggest(r.names || [], q);
+      } catch (e) { renderSuggest([], q, true); }
+      finally { setSpin(false); }
+    }
+
+    function renderSuggest(names, q, failed) {
+      const box = $('suggest');
+      items = names; activeIdx = -1;
+      if (!names.length) {
+        const msg = failed
+          ? 'Connection issue, try again.'
+          : (CFG.NOT_FOUND_MESSAGE
+              ? richText(CFG.NOT_FOUND_MESSAGE, CFG.NOT_FOUND_MESSAGE_LINK)
+              : 'No match found. Please check the spelling of your full name.');
+        box.innerHTML = '<div class="hint">' + msg + '</div>';
+        box.classList.add('show'); return;
+      }
+      box.innerHTML = names.map((n, i) => '<button data-i="' + i + '">' + highlight(n, q) + '</button>').join('');
+      box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => pick(items[+b.dataset.i])));
+      box.classList.add('show');
+    }
+
+    function highlight(name, q) {
+      const i = name.toLowerCase().indexOf(q.toLowerCase());
+      if (i < 0) return esc(name);
+      return esc(name.slice(0, i)) + '<strong style="color:var(--maroon)">' + esc(name.slice(i, i + q.length)) + '</strong>' + esc(name.slice(i + q.length));
+    }
+
+    function closeSuggest() { $('suggest').classList.remove('show'); $('suggest').innerHTML = ''; items = []; activeIdx = -1; }
+
+    $('q').addEventListener('keydown', e => {
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, items.length - 1); paintActive(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); paintActive(); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0) pick(items[activeIdx]); }
+      else if (e.key === 'Escape') closeSuggest();
+    });
+    function paintActive() {
+      const bs = $('suggest').querySelectorAll('button');
+      bs.forEach((b, i) => b.classList.toggle('active', i === activeIdx));
+      if (activeIdx >= 0 && bs[activeIdx]) bs[activeIdx].scrollIntoView({ block: 'nearest' });
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-wrap')) closeSuggest();
+    });
+
+    $('clearX').addEventListener('click', () => { $('q').value = ''; $('clearX').style.display = 'none'; closeSuggest(); $('q').focus(); });
+
+    /* ====== Lookup + render ====== */
+    async function pick(name) {
+      $('q').value = name;
+      closeSuggest();
+      setSpin(true); hideAlert();
+      try {
+        const r = await api({ action: 'lookup', name });
+        if (r.error) showAlert(r.error);
+        else if (!r.found) showAlert(CFG.NOT_FOUND_MESSAGE);
+        else renderResult(r);
+      } catch (e) { showAlert('Connection issue. Please try again.'); }
+      finally { setSpin(false); }
+    }
+
+    const tick  = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+    const cross = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+    const clock = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5"/></svg>';
+
+    /* Decide a stage's traffic-light state from its value text.
+       Order matters: an "issue" word beats a "waiting" word beats "done".
+       Tune the keyword lists below if you add new status phrases. */
+    function stageState(value) {
+      const t = String(value || '').trim().toLowerCase();
+      if (!t) return 'pending';
+      if (/\bnot\b|reject|declin|unsuccess|fail|incomplete|missing|on hold/.test(t)) return 'issue';
+      if (/await|pending|under review|please wait|wait for|processing|in progress|submitted/.test(t)) return 'progress';
+      return 'done';
+    }
+
+    function renderResult(r) {
+      $('rName').textContent = r.name;
+
+      $('rProfile').innerHTML = (r.profile || []).map(f =>
+        '<div class="pill"><span class="k">' + esc(f.label) + '</span><span class="v">' + esc(f.value || '—') + '</span></div>'
+      ).join('') || '<div class="pill"><span class="v">Details to be confirmed</span></div>';
+
+      $('rSteps').innerHTML = (r.status || []).map(s => {
+        const st = stageState(s.value);
+        const icon = st === 'done' ? tick : st === 'issue' ? cross : st === 'progress' ? clock : '';
+        const msg  = st === 'pending' ? 'Pending' : s.value;
+        return '<div class="step ' + st + '">' +
+          '<div class="dot">' + icon + '</div>' +
+          '<div class="s-label">' + esc(s.label) + '</div>' +
+          '<div class="s-msg' + (st === 'pending' ? ' empty' : '') + '">' + esc(msg) + '</div>' +
+          '</div>';
+      }).join('');
+
+      $('searchCard').style.display = 'none';
+      $('result').classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    $('resetBtn').addEventListener('click', () => {
+      $('result').classList.remove('show');
+      $('searchCard').style.display = '';
+      $('q').value = ''; $('clearX').style.display = 'none';
+      hideAlert(); $('q').focus();
+    });
+
+    function showAlert(m) { $('alert').innerHTML = '<div class="alert err">' + esc(m) + '</div>'; }
+    function hideAlert() { $('alert').innerHTML = ''; }
+
+    /* ====== Init ====== */
+    function applyConfig() {
+      const c = CFG;
+      if (c.PORTAL_TITLE) { document.title = c.PORTAL_TITLE; $('title').textContent = c.PORTAL_TITLE; }
+      if (c.PORTAL_SUBTITLE) $('subtitle').textContent = c.PORTAL_SUBTITLE;
+      $('intro1').innerHTML = richText(c.INTRO_1, c.INTRO_1_LINK);
+      $('intro2').innerHTML = richText(c.INTRO_2, c.INTRO_2_LINK);
+      $('contactNote').innerHTML = richText(c.CONTACT_NOTE, c.CONTACT_NOTE_LINK);
+      $('footerNote').innerHTML = richText(c.FOOTER_NOTE, c.FOOTER_NOTE_LINK);
+      $('footer').textContent = c.FOOTER_TEXT || '';
+      if (c.PRIMARY_COLOR) {
+        document.documentElement.style.setProperty('--maroon', c.PRIMARY_COLOR);
+        const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = c.PRIMARY_COLOR;
+      }
+      if (c.LOGO_URL) { const l = $('logo'); l.src = fixImg(c.LOGO_URL); l.style.display = 'block'; $('crest').style.display = 'none'; }
+      document.body.classList.remove('boot'); document.body.classList.add('ready');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (APPS_SCRIPT_URL.indexOf('PASTE_YOUR') === 0) {
+        CFG = {}; applyConfig(); showAlert('APPS_SCRIPT_URL is not set in index.html.'); return;
+      }
+      try { CFG = await api({ action: 'config' }); } catch (e) { CFG = {}; }
+      applyConfig();
+      $('q').focus();
+    });
+  </script>
+</body>
+</html>
